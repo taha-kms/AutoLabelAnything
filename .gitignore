@@ -1,0 +1,37 @@
+### Data and large artifacts
+autolabeling_data/
+autolabel_data/
+autolabel_data/user_videos/
+
+### Python virtual environments
+venv/
+.venv/
+
+### Python bytecode and build artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+
+### Node / frontend
+autolabel-anything-ui/node_modules/
+autolabel-anything-ui/build/
+autolabel-anything-ui/.cache/
+
+### Environment / secrets
+.env
+.env.*
+*.env
+
+### Logs
+*.log
+
+### IDE / editor configs
+.idea/
+.vscode/
+
+### Miscellaneous
+=1.3.2

@@ -11,8 +11,8 @@ services:
       POSTGRES_DB: autolabeling # Default database to be created
     volumes:
       - postgres_data:/var/lib/postgresql/data # Persist PostgreSQL data using a Docker volume
-    ports:
-      - '5432:5432' # Expose port 5432 for PostgreSQL
+    # No host port mapping needed; other services talk to postgres over the internal Docker network.
+    # This also avoids conflicts if some other PostgreSQL is already using 5432 on the host.
 
   ## Redis Service
   redis:
@@ -40,6 +40,11 @@ services:
       - '8000:8051'
     volumes:
       - ./autolabeling_data:/data
+      # Make host videos in ./autolabel_data/user_videos visible where the API expects them
+      # (inside the container at /data/autolabeling_data/user_videos)
+      - ./autolabel_data/user_videos:/data/autolabeling_data/user_videos
+    # Request all available GPUs for this service (Docker with NVIDIA runtime)
+    gpus: all
     deploy:
       resources:
         reservations:
@@ -60,8 +65,23 @@ services:
       - redis
     env_file:
       - ./autolabel-anything-sam2-services/.env
+    environment:
+      HYDRA_FULL_ERROR: "1"
+      SAM2_FORCE_CPU: "1"
+      # Ensure local SAM2 source tree is importable so Hydra can resolve
+      # targets like 'sam2.modeling.backbones.hieradet.Hiera' even if
+      # the installed package is out of sync.
+      PYTHONPATH: /app/segment-anything-2:${PYTHONPATH}
     volumes:
       - ./autolabeling_data:/data
+      # Same mapping for the SAM2 service so it sees the same user_videos directory
+      - ./autolabel_data/user_videos:/data/autolabeling_data/user_videos
+      # Mount selected source directories for faster dev without rebuilding the image
+      - ./autolabel-anything-sam2-services/services:/app/services
+      - ./autolabel-anything-sam2-services/ai_module:/app/ai_module
+      - ./autolabel-anything-sam2-services/worker.py:/app/worker.py
+    # Request all available GPUs for this service (Docker with NVIDIA runtime)
+    gpus: all
     deploy:
       resources:
         reservations:
